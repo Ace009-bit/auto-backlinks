@@ -1,158 +1,154 @@
+import os
 import time
 from selenium import webdriver
+from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.by import By
-from openpyxl import Workbook
-from colorama import Fore, Style, init
+import openpyxl
 
-# Initialize Colorama for colored terminal output
-init(autoreset=True)
+# ASCII Art for the menu
+def print_ascii_menu():
+    os.system('clear')
+    print(r"""
+     _______  _______  _______  _______  _______  ______  
+    (  ____ \(  ____ \(  ___  )(       )(  ____ \(  __  \ 
+    | (    \/| (    \/| (   ) || () () || (    \/| (  \  )
+    | (__    | |      | |   | || || || || (__    | |   ) |
+    |  __)   | |      | |   | || |(_)| ||  __)   | |   | |
+    | (      | |      | |   | || |   | || (      | |   ) |
+    | )      | (____/\| (___) || )   ( || (____/\| (__/  )
+    |/       (_______/(_______)|/     \|(_______/(______/ 
+                                                        
+    Author: Saurabh aka (Ace)
+    """)
+    print("[1] Submit Backlinks")
+    print("[2] Exit")
+    print()
 
-# ASCII Art Logo
-def print_logo():
-    logo = """
-  ██████╗  █████╗ ███████╗██████╗  █████╗ ██████╗ ██╗  ██╗
- ██╔════╝ ██╔══██╗██╔════╝██╔══██╗██╔══██╗██╔══██╗╚██╗██╔╝
- ██║  ███╗███████║███████╗██████╔╝███████║██████╔╝ ╚███╔╝ 
- ██║   ██║██╔══██║╚════██║██╔═══╝ ██╔══██║██╔═══╝   ██╔╝  
- ╚██████╔╝██║  ██║███████║██║     ██║  ██║██║       ██║   
-  ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝     ╚═╝  ╚═╝╚═╝       ╚═╝   
-    """
-    print(Fore.CYAN + logo)
-    print(Fore.YELLOW + "Author: SAURABH aka (Ace)")
-    print(Fore.YELLOW + "-" * 60)
+# Initialize Firefox WebDriver
+def initialize_driver():
+    options = Options()
+    options.headless = False  # Set to True to run in headless mode (no browser UI)
+    service = Service("/usr/local/bin/geckodriver")
+    return webdriver.Firefox(service=service, options=options)
 
+# Submit backlinks from the list
+def submit_backlinks(driver, backlinks):
+    submitted_urls = []
+    for url in backlinks:
+        try:
+            print(f"Submitting to: {url}")
+            driver.get(url)
+            time.sleep(3)  # Adjust wait time if necessary
+            
+            # Example interaction: locate and fill forms (modify selectors as needed)
+            if "submit.php" in url or "submit" in url.lower():
+                driver.find_element(By.NAME, "url").send_keys("https://example.com")
+                driver.find_element(By.NAME, "title").send_keys("Example Website")
+                driver.find_element(By.NAME, "description").send_keys("This is an example description.")
+                driver.find_element(By.NAME, "submit").click()
+                print(f"Submitted: {url}")
+                submitted_urls.append(url)
+        except Exception as e:
+            print(f"Failed to submit: {url} | Error: {e}")
+    return submitted_urls
 
-# Main Menu
-def main_menu():
-    print_logo()
-    print(Fore.GREEN + "[1] Start Backlink Submission Process")
-    print(Fore.RED + "[2] Exit")
-    choice = input(Fore.YELLOW + "\nEnter your choice: ")
-    return choice
+# Save submitted URLs to an Excel file
+def save_to_excel(submitted_urls):
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    sheet.title = "Submitted URLs"
+    sheet.append(["Submitted Backlinks"])
 
+    for url in submitted_urls:
+        sheet.append([url])
 
-# Backlink Submission Script
-def submit_backlinks():
-    # Initialize Excel Workbook
-    wb = Workbook()
-    ws = wb.active
-    ws.append(["Submission URL", "Submitted Backlink URL", "Status"])  # Add headers to the Excel file
+    file_name = "submitted_backlinks.xlsx"
+    workbook.save(file_name)
+    print(f"\nSubmitted backlinks saved to {file_name}")
 
-    # Path to your WebDriver
-    driver_path = "/path/to/chromedriver"  # Replace with your WebDriver path
-    driver = webdriver.Chrome(executable_path=driver_path)
+# Main menu
+def main():
+    print_ascii_menu()
+    choice = input("Enter your choice: ").strip()
 
-    # List of backlink submission URLs
-    backlink_sites = [
-        "https://www.highrankdirectory.com/submit.php",
-        "https://www.sitepromotiondirectory.com/",
-        "https://www.promotebusinessdirectory.com/",
-        "https://gainweb.org/submit.php?",
-        "https://www.poec.info/",
-         "https://poec.info/",
-    "https://www.inyectronicawc.com/",
-    "https://www.welcomelinks.info/",
-    "https://zendirectory.com.ar/",
-    "https://www.marketinginternetdirectory.com/",
-    "http://www.drtest.net/",
-    "https://www.pr8directory.com/",
-    "https://FiveStarsAutoPawn.com",
-    "https://premium.uklinks.info/",
-    "https://seo.optimisationdirectory.info/",
-    "https://newfreedirectory.com.ar.neobacklinks.net/",
-    "https://www.submityourlink.com.ar/",
-    "https://www.alexa.com.ar/",
-    "https://ukdirectory.com.ar/",
-    "https://www.cawausa.neobacklinks.net/",
-    "https://bangalore.directorycritic.info/",
-    "https://redirectplus.info/",
-    "https://newfreedirectory.com.ar/",
-    "https://www.moonsunfavor.com/",
-    "http://www.online-websites-directory.com/",
-    "https://www.optimisationdirectory.info/",
-    "https://www.projectcollabmanila.neobacklinks.net/",
-    "https://zendirectory.neobacklinks.net/",
-    "https://www.exactseek.com/",
-    "http://www.targetsviews.com/",
-    "http://www.idahoindex.com/",
-    "http://www.fat64.net/",
-    "https://gainweb.org/",
-    "https://www.canadawebdir.com/",
-    "https://24directory.com.ar/",
-    "https://gcast.info/",
-    "https://www.blpdirectory.info/",
-    "https://www.blackgreendirectory.com/",
-    "https://redlavadirectory.com.ar/",
-    "https://thedirectory.com.ar/",
-    "http://www.livepopular.com",
-    "https://www.besttopdir.info/",
-    "http://www.info-listings.com",
-    "http://www.freeprwebdirectory.com",
-    "http://www.allfreethings.com",
-    "http://www.britainbusinessdirectory.com",
-    "https://bidsyndicate.neobacklinks.net/",
-        # Add more URLs from your list here
-    ]
+    if choice == "1":
+        # List of backlinks (Updated)
+        backlinks = [
+            "https://www.highrankdirectory.com/submit.php",
+            "https://www.sitepromotiondirectory.com/",
+            "https://www.promotebusinessdirectory.com/",
+            "https://gainweb.org/submit.php?",
+            "https://www.poec.info/",
+            "https://poec.info/",
+            "https://www.inyectronicawc.com/",
+            "https://www.welcomelinks.info/",
+            "https://zendirectory.com.ar/",
+            "https://www.marketinginternetdirectory.com/",
+            "http://www.drtest.net/",
+            "https://www.pr8directory.com/",
+            "https://FiveStarsAutoPawn.com",
+            "https://premium.uklinks.info/",
+            "https://seo.optimisationdirectory.info/",
+            "https://newfreedirectory.com.ar.neobacklinks.net/",
+            "https://www.submityourlink.com.ar/",
+            "https://www.alexa.com.ar/",
+            "https://ukdirectory.com.ar/",
+            "https://www.cawausa.neobacklinks.net/",
+            "https://bangalore.directorycritic.info/",
+            "https://redirectplus.info/",
+            "https://newfreedirectory.com.ar/",
+            "https://www.moonsunfavor.com/",
+            "http://www.online-websites-directory.com/",
+            "https://cawausa.neobacklinks.net/",
+            "https://www.optimisationdirectory.info/",
+            "https://www.inyectronicawc.com/",
+            "https://www.projectcollabmanila.neobacklinks.net/",
+            "https://zendirectory.neobacklinks.net/",
+            "https://www.exactseek.com/",
+            "http://www.targetsviews.com/",
+            "http://www.drtest.net/",
+            "http://www.idahoindex.com/",
+            "http://www.fat64.net/",
+            "https://www.canadawebdir.com/",
+            "https://24directory.com.ar/",
+            "https://gcast.info/",
+            "https://www.blpdirectory.info/",
+            "https://www.blackgreendirectory.com/",
+            "https://coastradar.info/",
+            "https://redlavadirectory.com.ar/",
+            "https://thedirectory.com.ar/",
+            "http://picktu.com",
+            "http://www.livepopular.com",
+            "http://www.allfreethings.com",
+            "http://www.freeprwebdirectory.com",
+            "http://www.britainbusinessdirectory.com",
+            "http://www.info-listings.com",
+            "https://bidsyndicate.neobacklinks.net/",
+            "https://www.besttopdir.neobacklinks.net/",
+            "https://submissionwebdirectory.com/",
+            "https://dizila.com/",
+            "https://siteswebdirectory.com/",
+        ]
 
-    # Information to be submitted
-    backlink_data = {
-        "name": "Your Name",
-        "email": "your_email@example.com",
-        "website": "https://yourwebsite.com",
-        "description": "Your website description here."
-    }
+        print("\nInitializing Firefox WebDriver...")
+        driver = initialize_driver()
 
-    try:
-        print(Fore.CYAN + "Starting backlink submission process...\n")
+        print("\nSubmitting backlinks...")
+        submitted_urls = submit_backlinks(driver, backlinks)
 
-        for index, site in enumerate(backlink_sites, start=1):
-            print(Fore.YELLOW + f"[{index}/{len(backlink_sites)}] Submitting to: {site}")
-            try:
-                driver.get(site)
-                time.sleep(3)  # Wait for the page to load
-
-                # Example form submission (modify the selectors based on each site's form structure)
-                driver.find_element(By.NAME, "name").send_keys(backlink_data["name"])
-                driver.find_element(By.NAME, "email").send_keys(backlink_data["email"])
-                driver.find_element(By.NAME, "website").send_keys(backlink_data["website"])
-                driver.find_element(By.NAME, "description").send_keys(backlink_data["description"])
-                driver.find_element(By.XPATH, "//button[@type='submit']").click()  # Adjust the XPath as needed
-
-                time.sleep(3)  # Wait for submission to complete
-
-                # Get the current URL (confirmation page URL or final page URL)
-                submitted_url = driver.current_url
-
-                # Log success
-                ws.append([site, submitted_url, "Success"])
-                print(Fore.GREEN + f"✔ Successfully submitted to: {site}")
-                print(Fore.GREEN + f"  Submitted URL: {submitted_url}\n")
-
-            except Exception as e:
-                # Log failure
-                ws.append([site, "", f"Failed: {e}"])
-                print(Fore.RED + f"✘ Failed to submit to: {site}")
-                print(Fore.RED + f"  Error: {e}\n")
-
-    finally:
-        # Save the Excel file
-        excel_path = "submitted_backlinks_with_urls.xlsx"
-        wb.save(excel_path)
-        print(Fore.CYAN + f"\nProcess complete. Excel file saved at: {excel_path}")
-
-        # Close the browser
+        print("\nClosing browser...")
         driver.quit()
-        print(Fore.CYAN + "Browser closed.")
 
-
-# Main Program
-if __name__ == "__main__":
-    while True:
-        choice = main_menu()
-        if choice == "1":
-            submit_backlinks()
-        elif choice == "2":
-            print(Fore.RED + "\nExiting... Goodbye!")
-            break
+        if submitted_urls:
+            save_to_excel(submitted_urls)
         else:
-            print(Fore.RED + "\nInvalid choice. Please try again.")
+            print("\nNo backlinks were successfully submitted.")
+    elif choice == "2":
+        print("\nExiting... Goodbye!")
+    else:
+        print("\nInvalid choice. Please try again.")
+        main()
+
+if __name__ == "__main__":
+    main()
