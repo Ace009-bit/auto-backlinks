@@ -1,2 +1,5 @@
-# auto-backlinks
-I make this for helping people in making backlinks so its automatically works and its save time 
+How to Use
+Run the script:
+
+chmod +x android_hacking.sh
+./android_hacking.sh
